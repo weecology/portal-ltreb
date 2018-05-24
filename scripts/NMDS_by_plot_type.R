@@ -8,6 +8,7 @@ library(dplyr)
 library(reshape2)
 library(vegan)
 library(ggplot2)
+#devtools::install_github("dgrtwo/gganimate")
 library(gganimate)
 
 # get data
@@ -34,18 +35,18 @@ for (i in 1:18){
 
 rspec <- c('BA','DM','DO','DS','NA','OL','OT','PB','PE','PF','PH','PI','PL','PM','PP','RF','RM','RO','SF','SH','SO')
 
-rdat <- select(rdat, period, yr, plot, species) %>%
+rdat <- select(rdat, period, year, plot, species) %>%
   filter(period > 0,
-         yr > 1987 & yr < 2015,
+         year > 1987 & year < 2015,
          plot %in% c(1,2,3,4,6,8,9,11,12,13,14,15,17,18,19,20,21,22),
          species %in% rspec) %>% 
-  group_by(yr, plot, species) %>% 
+  group_by(year, plot, species) %>% 
   summarise(count = n())
 
 #=====================================================
 # RUN NMDS #
 
-years <- unique(rdat$yr) # list of years
+years <- unique(rdat$year) # list of years
 
 # dataframe for storing NMDS values
 NMDS_df <- data.frame(group = character(0), 
@@ -72,9 +73,9 @@ for (i in 1:length(years)){
   #   - get the mean NMDS oridation location by group type
   #   - put this data into a dataframe for plotting
   
-  year <- years[i]                            # select each year
+  yr <- years[i]                            # select each year
   
-  data <- rdat %>% filter(yr == year)         # filter rodent data by year
+  data <- rdat %>% filter(year == yr)         # filter rodent data by year
   matrix <- data[,-1]                         # remove year column
   matrix <- dcast(matrix,                     # make presence-absence matrix
                   formula = plot ~ species, 
@@ -124,7 +125,7 @@ for (i in 1:length(years)){
 # use ggplot2 to plot the data
 plot <- ggplot(data = NMDS_df, aes(MDS1, MDS2, frame = year)) + 
   geom_point(aes(color = group)) +
-  geom_path(data = NMDS_mean_df, aes(MDS1, MDS2, cumulative = TRUE, color = group)) +
-  geom_path(data = df_ell_all, aes(x = MDS1, y = MDS2, colour = group), size = 1) +
+  geom_path(data = NMDS_mean_df, aes(MDS1, MDS2, color = group)) +
+  #geom_path(data = df_ell_all, aes(x = MDS1, y = MDS2, colour = group), size = 1) +
   theme_bw()
 gganimate(plot, "All_species.gif")
